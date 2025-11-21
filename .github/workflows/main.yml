@@ -1,4 +1,5 @@
 name: Deploy Customer Loyalty Agent
+# Workflow to deploy Customer Loyalty Agent when related files change
 
 on:
   push:
