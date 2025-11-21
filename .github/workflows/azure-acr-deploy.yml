@@ -1,0 +1,43 @@
+name: Build and push to Azure Container Registry
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.ACR_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Create temporary .env in src (from secret, do NOT commit)
+        run: |
+          printf '%s' "${{ secrets.ENV }}" > src/.env
+          chmod 600 src/.env
+        shell: bash
+
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src
+          file: ./src/Dockerfile
+          push: true
+          tags: ${{ secrets.ACR_REGISTRY }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Remove temporary .env
+        run: |
+          shred -u src/.env || rm -f src/.env || true
+        shell: bash
