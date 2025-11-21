@@ -1,3 +1,4 @@
+import os
 import uuid
 import logging
 from typing import Dict
@@ -5,6 +6,10 @@ from typing import Dict
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+
+from opentelemetry import trace
+from azure.monitor.opentelemetry import configure_azure_monitor
+from azure.ai.agents.telemetry import trace_function
 
 from agent.product_management_agent import SemanticKernelProductManagementAgent
 
@@ -15,6 +20,12 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 # In-memory session store (in production, use Redis or database)
 product_management_agent = SemanticKernelProductManagementAgent()
 active_sessions: Dict[str, str] = {}
+
+# Application Insights logger setup
+# (Assuming Application Insights logger is set up elsewhere in the application)
+
+application_insights_connection_string = os.environ["APPLICATIONINSIGHTS_CONNECTION_STRING"]
+configure_azure_monitor(connection_string=application_insights_connection_string)
 
 class ChatMessage(BaseModel):
     """Chat message model"""
@@ -52,6 +63,7 @@ async def send_message(chat_message: ChatMessage):
     except Exception as e:
         logger.error(f"Error processing chat message: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/stream")
 async def stream_message(chat_message: ChatMessage):
