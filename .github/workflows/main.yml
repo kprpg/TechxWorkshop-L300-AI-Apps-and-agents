@@ -3,7 +3,7 @@ name: Deploy Customer Loyalty Agent
 
 on:
   push:
-    # Paths include the initializer, prompt, workflow, and any associated tools
+    #  Paths include the initializer, prompt, workflow, and any associated tools
     paths:
       - 'src/app/agents/customerLoyaltyAgent_initializer.py'
       - 'src/app/tools/discountLogic.py'
